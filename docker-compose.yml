@@ -1,32 +1,24 @@
-services:
-  zookeeper:
-    image: confluentinc/cp-zookeeper:6.2.1
-    platform: linux/amd64
-    user: "0:0"
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    ports:
-      - "2181:2181"
-    restart: unless-stopped
+version: '3.8'
 
+services:
   kafka:
-    image: confluentinc/cp-kafka:6.2.1
+    image: bitnami/kafka:latest
+    container_name: kafka
     platform: linux/amd64
-    depends_on:
-      - zookeeper
     ports:
       - "9092:9092"
-      - "29092:29092"
     environment:
       KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+      KAFKA_CFG_PROCESS_ROLES: broker,controller
+      KAFKA_CFG_NODE_ID: 1
+      KAFKA_CFG_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    volumes:
+      - kafka_data:/bitnami/kafka
     restart: unless-stopped
-
 
   postgres:
     image: postgres:15
@@ -42,4 +34,5 @@ services:
     restart: unless-stopped
 
 volumes:
+  kafka_data:
   pgdata:
